@@ -2,15 +2,15 @@
 # Copyright (C) 2019  Matthew Paul Humphreys  (GNU GPLv3)
 """Simulate total alkalinity and pH during titrations."""
 from scipy.optimize import least_squares as olsq
-from numpy import full_like, nan
+from numpy import exp, full_like, nan
 from . import solve
 
-def alk(h, mu, concTotals, eqConstants):
+def alk(h, mu, concTotals, eqConstants, co2Loss=0):
     """Simulate total alkalinity from known pH and total concentrations."""
     OH = eqConstants['w']/h
     if 'C' in concTotals.keys():
-        co2aq = mu*concTotals['C']/(1 + eqConstants['C1']/h +
-            eqConstants['C1']*eqConstants['C2']/h**2)
+        co2aq = exp(-co2Loss*(1 - mu))*mu*concTotals['C']/(1 +
+            eqConstants['C1']/h + eqConstants['C1']*eqConstants['C2']/h**2)
         bicarb = eqConstants['C1']*co2aq/h
         carb = eqConstants['C2']*bicarb/h
     else:
@@ -58,13 +58,14 @@ def alk(h, mu, concTotals, eqConstants):
     }
     return alk, components
 
-def pH(massAcid, massSample, concAcid, alk0, concTotals, eqConstants):
+def pH(massAcid, massSample, concAcid, alk0, concTotals, eqConstants,
+        co2Loss=0):
     """Simulate pH from known total alkalinity and total concentrations."""
     pH = full_like(massAcid, nan)
     mu = solve.mu(massAcid, massSample)
     for i, massAcid_i in enumerate(massAcid):
         pH[i] = olsq(lambda pH: alk(10.0**-pH, mu[i], concTotals,
-                eqConstants)[0] - mu[i]*alk0 + massAcid_i*concAcid/
+                eqConstants, co2Loss)[0] - mu[i]*alk0 + massAcid_i*concAcid/
                 (massAcid_i + massSample),
             8.0, method='lm')['x'][0]
     return pH

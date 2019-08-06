@@ -12,11 +12,15 @@ _rgb_final = array([0.21, 0.46, 1])
 _rgb_both = array([0.27, 0.8, 0.54])
 
 def prep(datfile, volSample, pSal, totalCarbonate, totalPhosphate,
-        totalSilicate, concAcid):
+        totalSilicate, concAcid, concTotalsIn=None, eqConstantsIn=None):
     """Preparatory calculations for plotting."""
     massAcid, emf, tempK, massSample, concTotals, eqConstants = \
         vindta.prep(datfile, volSample, pSal, totalCarbonate, totalPhosphate,
         totalSilicate)
+    if concTotalsIn is not None:
+        concTotals = concTotalsIn
+    if eqConstantsIn is not None:
+        eqConstants = eqConstantsIn
     f1Guess = solve.f1(massAcid, emf, tempK, massSample)
     LGuess = logical_and(
         f1Guess > 0.1*np_max(f1Guess),
@@ -32,7 +36,9 @@ def prep(datfile, volSample, pSal, totalCarbonate, totalPhosphate,
     h = solve.emf2h(emf, alk_emf0['x'][1], tempK)
     mu = solve.mu(massAcid, massSample)
     alkSim = simulate.alk(h, mu, concTotals, eqConstants)
-    alk0Sim = (alkSim[0] + massAcid*concAcid/(massAcid + massSample))/mu
+#    alk0Sim = (alkSim[0] + massAcid*concAcid/(massAcid + massSample))/mu
+    alk0Sim = (alkSim[0] + alk_emf0['x'][0]*(1 - mu) +
+        massAcid*concAcid/(massAcid + massSample))
     RMS = sqrt(mean(alk_emf0['fun']**2))
     Npts = len(alk_emf0['fun'])
     rgb = zeros((len(emf), 3))
@@ -157,11 +163,12 @@ def components(ax, massAcid, alk0Sim, alkSim, sublabel):
     return ax
 
 def everything(datfile, volSample, pSal, totalCarbonate, totalPhosphate,
-        totalSilicate, concAcid):
+        totalSilicate, concAcid, concTotals=None, eqConstants=None):
     """Plot everything for a single titration from a VINDTA-style .dat file."""
     (massAcid, emf, massSample, f1Guess, LGuess, alkGuess, emf0Guess, granEmf0,
         alk_emf0, alkSim, alk0Sim, RMS, Npts, rgb) = prep(datfile, volSample,
-        pSal, totalCarbonate, totalPhosphate, totalSilicate, concAcid)
+        pSal, totalCarbonate, totalPhosphate, totalSilicate, concAcid,
+        concTotals, eqConstants)
     fig = figure(figsize=[17, 10])
     rcParams.update({'font.size': 10})
     gs = fig.add_gridspec(4, 2)

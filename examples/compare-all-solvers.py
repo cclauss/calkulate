@@ -3,7 +3,7 @@ import calkulate as calk
 
 # Import D81 simulated titration with phosphate
 massAcid, pH, tempK, massSample, concAcid, pSal, alk, concTotals, eqConstants \
-    = calk.io.Dickson1981(withPhosphate=False)
+    = calk.io.Dickson1981(withPhosphate=True)
 
 # Define EMF0 & convert pH to EMF, as if we'd done a potentiometric titration
 emf0 = 660.0
