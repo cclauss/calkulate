@@ -54,6 +54,9 @@ def prep(datfile, volSample, pSal, totalCarbonate, totalPhosphate,
     return (massAcid, emf, massSample, f1Guess, LGuess, alkGuess, emf0Guess,
         granEmf0, alk_emf0, alkSim, alk0Sim, RMS, Npts, rgb)
 
+def rawTitration(ax, volAcid, emf, tempK):
+    ax.scatter(volAcid, emf, c=tempK)
+
 def emfTitration(ax, massAcid, emf, massSample, concAcid, alk_emf0, alkGuess,
         rgb, sublabel):
     """EMF change as acid is added throughout a titration."""
