@@ -40,65 +40,156 @@ The equivalent options are:
 |      3        |     1     |     2     |
 |      4        |     2     |     2     |
 """
-from . import (calibrate, concentrations, convert, dissociation, io, solve,
-    titration)
+from . import calibrate, concentrations, convert, dissociation, io, solve, titration
 
-def prep(datFile, volSample, pSal, totalCarbonate, totalPhosphate,
-        totalSilicate, buretteCorrection=1, tempKForce=None, WhichKs=10,
-        WhoseKSO4=1, WhoseKF=1, WhoseTB=2, totalAmmonia=0, totalH2Sulfide=0):
+
+def prep(
+    datFile,
+    volSample,
+    pSal,
+    totalCarbonate,
+    totalPhosphate,
+    totalSilicate,
+    buretteCorrection=1,
+    tempKForce=None,
+    WhichKs=10,
+    WhoseKSO4=1,
+    WhoseKF=1,
+    WhoseTB=2,
+    totalAmmonia=0,
+    totalH2Sulfide=0,
+):
     """Import .dat file and prepare data for analysis."""
     volAcid, emf, tempK = io.datfile(datFile)
     if tempKForce is not None:
         tempK[:] = tempKForce
     massSample = convert.vol2massSample(volSample, tempK[0], pSal)
-    massAcid = convert.vol2massAcid(volAcid, tempK,
-        buretteCorrection=buretteCorrection)
-    concTotals = concentrations.concTotals(pSal, totalCarbonate=totalCarbonate,
-        totalPhosphate=totalPhosphate, totalSilicate=totalSilicate,
-        WhichKs=WhichKs, WhoseTB=WhoseTB, totalAmmonia=totalAmmonia,
-        totalH2Sulfide=totalH2Sulfide)
-    eqConstants = dissociation.eqConstants(tempK, pSal, concTotals,
-        WhichKs=WhichKs, WhoseKSO4=WhoseKSO4, WhoseKF=WhoseKF)
+    massAcid = convert.vol2massAcid(volAcid, tempK, buretteCorrection=buretteCorrection)
+    concTotals = concentrations.concTotals(
+        pSal,
+        totalCarbonate=totalCarbonate,
+        totalPhosphate=totalPhosphate,
+        totalSilicate=totalSilicate,
+        WhichKs=WhichKs,
+        WhoseTB=WhoseTB,
+        totalAmmonia=totalAmmonia,
+        totalH2Sulfide=totalH2Sulfide,
+    )
+    eqConstants = dissociation.eqConstants(
+        tempK, pSal, concTotals, WhichKs=WhichKs, WhoseKSO4=WhoseKSO4, WhoseKF=WhoseKF
+    )
     return massAcid, emf, tempK, massSample, concTotals, eqConstants
 
-def alk(datFile, volSample, concAcid, pSal, totalCarbonate, totalPhosphate,
-        totalSilicate, solver='complete', buretteCorrection=1,
-        tempKForce=None, WhichKs=10, WhoseKSO4=1, WhoseKF=1, WhoseTB=2,
-        totalAmmonia=0, totalH2Sulfide=0, **kwargs):
+
+def alk(
+    datFile,
+    volSample,
+    concAcid,
+    pSal,
+    totalCarbonate,
+    totalPhosphate,
+    totalSilicate,
+    solver="complete",
+    buretteCorrection=1,
+    tempKForce=None,
+    WhichKs=10,
+    WhoseKSO4=1,
+    WhoseKF=1,
+    WhoseTB=2,
+    totalAmmonia=0,
+    totalH2Sulfide=0,
+    **kwargs
+):
     """Solve for alkalinity from a titration .dat file."""
-    massAcid, emf, tempK, massSample, concTotals, eqConstants = prep(datFile,
-        volSample, pSal, totalCarbonate, totalPhosphate, totalSilicate,
-        buretteCorrection=buretteCorrection, tempKForce=tempKForce,
-        WhichKs=WhichKs, WhoseKSO4=WhoseKSO4, WhoseKF=WhoseKF, WhoseTB=WhoseTB,
-        totalAmmonia=totalAmmonia, totalH2Sulfide=totalH2Sulfide)
+    massAcid, emf, tempK, massSample, concTotals, eqConstants = prep(
+        datFile,
+        volSample,
+        pSal,
+        totalCarbonate,
+        totalPhosphate,
+        totalSilicate,
+        buretteCorrection=buretteCorrection,
+        tempKForce=tempKForce,
+        WhichKs=WhichKs,
+        WhoseKSO4=WhoseKSO4,
+        WhoseKF=WhoseKF,
+        WhoseTB=WhoseTB,
+        totalAmmonia=totalAmmonia,
+        totalH2Sulfide=totalH2Sulfide,
+    )
     if solver.lower() in solve.allSolvers.keys():
         solveFunc = solve.allSolvers[solver.lower()]
-        alkOptResult = solveFunc(massAcid, emf, tempK, massSample, concAcid,
-            concTotals, eqConstants, **kwargs)
+        alkOptResult = solveFunc(
+            massAcid,
+            emf,
+            tempK,
+            massSample,
+            concAcid,
+            concTotals,
+            eqConstants,
+            **kwargs
+        )
     else:
-        print('calkulate.datfile.alk: solver not recognised.')
-        print('Options (case-insensitive):' +
-            (len(solve.allSolvers.keys())*' \'{}\'').format(
-                *solve.allSolvers.keys()))
-        alkOptResult = {'x': [None,]}
+        print("calkulate.datfile.alk: solver not recognised.")
+        print(
+            "Options (case-insensitive):"
+            + (len(solve.allSolvers.keys()) * " '{}'").format(*solve.allSolvers.keys())
+        )
+        alkOptResult = {"x": [None,]}
     return alkOptResult
 
-def concAcid(datFile, volSample, alkCert, pSal, totalCarbonate,
-        totalPhosphate, totalSilicate, solver='complete', buretteCorrection=1,
-        tempKForce=None, WhichKs=10, WhoseKSO4=1, WhoseKF=1, WhoseTB=2,
-        totalAmmonia=0, totalH2Sulfide=0, **kwargs):
+
+def concAcid(
+    datFile,
+    volSample,
+    alkCert,
+    pSal,
+    totalCarbonate,
+    totalPhosphate,
+    totalSilicate,
+    solver="complete",
+    buretteCorrection=1,
+    tempKForce=None,
+    WhichKs=10,
+    WhoseKSO4=1,
+    WhoseKF=1,
+    WhoseTB=2,
+    totalAmmonia=0,
+    totalH2Sulfide=0,
+    **kwargs
+):
     """Solve for acid concentration from a titration .dat file."""
-    massAcid, emf, tempK, massSample, concTotals, eqConstants = prep(datFile,
-        volSample, pSal, totalCarbonate, totalPhosphate, totalSilicate,
-        buretteCorrection=buretteCorrection, tempKForce=tempKForce,
-        WhichKs=WhichKs, WhoseKSO4=WhoseKSO4, WhoseKF=WhoseKF, WhoseTB=WhoseTB,
-        totalAmmonia=totalAmmonia, totalH2Sulfide=totalH2Sulfide)
-    concAcidOptResult = calibrate.concAcid(massAcid, emf, tempK, massSample,
-        alkCert, concTotals, eqConstants, solver=solver, **kwargs)
+    massAcid, emf, tempK, massSample, concTotals, eqConstants = prep(
+        datFile,
+        volSample,
+        pSal,
+        totalCarbonate,
+        totalPhosphate,
+        totalSilicate,
+        buretteCorrection=buretteCorrection,
+        tempKForce=tempKForce,
+        WhichKs=WhichKs,
+        WhoseKSO4=WhoseKSO4,
+        WhoseKF=WhoseKF,
+        WhoseTB=WhoseTB,
+        totalAmmonia=totalAmmonia,
+        totalH2Sulfide=totalH2Sulfide,
+    )
+    concAcidOptResult = calibrate.concAcid(
+        massAcid,
+        emf,
+        tempK,
+        massSample,
+        alkCert,
+        concTotals,
+        eqConstants,
+        solver=solver,
+        **kwargs
+    )
     return concAcidOptResult
+
 
 def Potentiometric(datFile, volSample, pSal, **kwargs):
     """Generate a Potentiometric titration object from a .dat file."""
     volAcid, emf, tempK = io.datfile(datFile)
-    return titration.Potentiometric(volAcid, emf, tempK, pSal, volSample,
-        **kwargs)
+    return titration.Potentiometric(volAcid, emf, tempK, pSal, volSample, **kwargs)

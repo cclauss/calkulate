@@ -2,6 +2,12 @@
 
 Calkulate v2.3 introduces a new `Potentiometric` class that titration datasets can be imported into, enabling easier high-level analysis using the existing array-based functions. This is not yet properly documented, although there is a working example script in the Github repo (*examples/stepwise-alkalinity.py*).
 
+## 2.3.1
+
+**Release date:** forthcoming
+
+  * Updated to work with PyCO2SYS v1.4.0.
+
 ## 2.3.0
 
 **Release date:** 2020-04-02

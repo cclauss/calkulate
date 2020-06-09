@@ -17,19 +17,19 @@
 
 # Define and import modules
 __all__ = [
-    'calibrate',
-    'concentrations',
-    'constants',
-    'convert',
-    'datfile',
-    'density',
-    'dissociation',
-    'io',
-    'meta',
-    'plot',
-    'simulate',
-    'solve',
-    'titration',
+    "calibrate",
+    "concentrations",
+    "constants",
+    "convert",
+    "datfile",
+    "density",
+    "dissociation",
+    "io",
+    "meta",
+    "plot",
+    "simulate",
+    "solve",
+    "titration",
 ]
 from . import (
     calibrate,
@@ -46,9 +46,10 @@ from . import (
     solve,
     titration,
 )
+
 # Add alias for backwards compatibility
 vindta = datfile
 
 # Metadata
-__author__ = 'Matthew P. Humphreys and Ruth S. Matthews'
+__author__ = "Humphreys, Matthew P. and Matthews, Ruth S."
 __version__ = meta.version
